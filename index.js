@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const router = require('./routes/route');
+const { notFound, errorHandler } = require('./middleware/error-middleware');
 require('dotenv').config();
 
 const app = express();
@@ -9,7 +10,10 @@ app.use(cors({credentials: true, origin: "http://localhost:3001"}));
 app.use(express.json({extended: true})); 
 app.use(express.urlencoded({extended: true}));
 
-app.use(router)
+app.use('/api', router);
+
+app.use(notFound)
+app.use(errorHandler)
 
 const connectDB = async () => {
   try {
