@@ -286,6 +286,14 @@ const editUser = async (req, res, next) => {
             });
         }
 
+        if((currentPassword.length) < 6){
+            return res.status(400).json({
+                code: 400,
+                status: 'failed',
+                error: 'Password must be at least 6 characters'
+            });
+        }
+
         const salt = await bcypt.genSalt(10)
         const hashedPassword = await bcypt.hash(newPassword, salt);
         const newInfo = await User.findByIdAndUpdate(req.user._id, {name, email, password: hashedPassword}, {new: true});
