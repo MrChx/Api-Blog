@@ -51,7 +51,10 @@ const registerUser = async (req, res, next) => {
             code: 201,
             status: 'success',
             message: 'User registered successfully',
-            user: newUser
+            data: {
+                name: newUser.name,
+                email: newUser.email,
+            }
         }); 
     }catch(err){
         next(err);
