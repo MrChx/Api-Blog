@@ -217,7 +217,7 @@ const changeAvatar = async (req, res, next) => {
                 if (fs.existsSync(uploadPath)) {
                     fs.unlinkSync(uploadPath);
                 }
-                throw new Error('Gagal mengupdate informasi avatar');
+                throw new Error('Failed for update info avatar');
             }
 
             return res.status(200).json({
@@ -240,4 +240,68 @@ const changeAvatar = async (req, res, next) => {
     }
 };
 
-module.exports = {registerUser, loginUser, detailUser, changeAvatar};
+const editUser = async (req, res, next) => {
+    try {
+        const {name, email, currentPassword, newPassword, newPassword2} = req.body;
+        if(!name || !email || !currentPassword || !newPassword || !newPassword2){
+            return res.status(400).json({
+                code: 400,
+                status: 'failed',
+                error: 'Please enter all fields'
+            });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({
+                code: 404,
+                status: 'failed',
+                error: 'User not found'
+            });
+        }
+
+        const emailExists = await User.findOne({email});
+        if(emailExists && (emailExists._id != req.user._id)){
+            return res.status(400).json({
+                code: 400,
+                status: 'failed',
+                error: 'Email already exists'
+            });
+        }
+
+        const comparePassword = await bcypt.compare(currentPassword, user.password);
+        if(!comparePassword){
+            return res.status(400).json({
+                code: 400,
+                status: 'failed',
+                error: 'Current password is incorrect'
+            });
+        }
+
+        if(newPassword !== newPassword2){
+            return res.status(400).json({
+                code: 400,
+                status: 'failed',
+                error: 'Passwords do not match'
+            });
+        }
+
+        const salt = await bcypt.genSalt(10)
+        const hashedPassword = await bcypt.hash(newPassword, salt);
+        const newInfo = await User.findByIdAndUpdate(req.user._id, {name, email, password: hashedPassword}, {new: true});
+
+        return res.status(200).json({
+            code: 200,
+            status: 'success',
+            message: 'User updated successfully',
+            data: {
+                name: newInfo.name,
+                email: newInfo.email,
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+module.exports = {registerUser, loginUser, detailUser, changeAvatar, editUser};
