@@ -175,7 +175,7 @@ const changeAvatar = async (req, res, next) => {
         }
 
         if (user.avatar) {
-            const oldAvatarPath = path.join(__dirname, `../uploads/${user.avatar}`);
+            const oldAvatarPath = path.join(__dirname, `../public/uploads/avatar${user.avatar}`);
             if (fs.existsSync(oldAvatarPath)) {
                 try {
                     fs.unlinkSync(oldAvatarPath);
@@ -188,10 +188,10 @@ const changeAvatar = async (req, res, next) => {
         // Generate new filename
         const fileExt = path.extname(avatar.name);
         const newFileName = `avatar-${user._id}-${Date.now()}${fileExt}`;
-        const uploadPath = path.join(__dirname, `../uploads/${newFileName}`);
+        const uploadPath = path.join(__dirname, `../public/uploads/avatar/${newFileName}`);
 
         // Create uploads directory if it doesn't exist
-        const uploadsDir = path.join(__dirname, '../uploads');
+        const uploadsDir = path.join(__dirname, '../public/uploads/avatar');
         if (!fs.existsSync(uploadsDir)) {
             fs.mkdirSync(uploadsDir, { recursive: true });
         }
