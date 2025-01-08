@@ -434,69 +434,75 @@ const updatePost = async (req, res, next) => {
   }
 };
 
-const deletePost = async (req, res, next) => {
+const deleteArticle = async (req, res, next) => {
   try {
-    const postId = req.params.postId;
+    const articleId = req.params.id;
 
-    if (!mongoose.Types.ObjectId.isValid(postId)) {
+    // Validasi ID artikel
+    if (!mongoose.Types.ObjectId.isValid(articleId)) {
       return res.status(400).json({
         code: 400,
-        status: "error",
-        message: "Post id is invalid",
+        status: "failed",
+        error: "Invalid article ID format",
       });
     }
 
-    const post = await Post.findById(postId);
-    
-    if (!post) {
+    // Cari artikel berdasarkan ID
+    const article = await Article.findById(articleId);
+
+    // Jika artikel tidak ditemukan
+    if (!article) {
       return res.status(404).json({
         code: 404,
-        status: "not found",
-        message: "Post not found",
+        status: "failed",
+        error: "Article not found",
       });
     }
 
-    if (post.creator.toString() !== req.user._id.toString()) {
+    // Periksa otorisasi pengguna
+    if (article.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({
         code: 403,
-        status: "forbidden",
-        message: "You are not authorized to delete this post",
+        status: "failed",
+        error: "You are not authorized to delete this article",
       });
     }
 
-    // Delete the thumbnail file from storage
-    if (post.thumbnail) {
-      const thumbnailPath = path.join(
+    // Hapus cover image jika ada
+    if (article.coverImage) {
+      const filePath = path.join(
         __dirname,
-        "../public/uploads/thumbnail",
-        post.thumbnail
+        "../public/uploads/articles",
+        article.coverImage
       );
-      
-      if (fs.existsSync(thumbnailPath)) {
+      if (fs.existsSync(filePath)) {
         try {
-          fs.unlinkSync(thumbnailPath);
+          fs.unlinkSync(filePath);
         } catch (err) {
-          console.error("Error deleting thumbnail file:", err);
-          // Continue with post deletion even if file deletion fails
+          return res.status(500).json({
+            code: 500,
+            status: "failed",
+            error: "Failed to delete cover image",
+            details: err.message,
+          });
         }
       }
     }
 
-    await Post.findByIdAndDelete(postId);
+    // Hapus artikel dari database
+    await Article.findByIdAndDelete(articleId);
 
-    const currentUser = await User.findById(req.user._id);
-    const userPostCount = Math.max((currentUser.posts || 1) - 1, 0); // Ensure count doesn't go below 0
-    await User.findByIdAndUpdate(req.user._id, { posts: userPostCount });
-
+    // Respon sukses
     res.status(200).json({
       code: 200,
       status: "success",
-      message: "Post deleted successfully",
+      message: "Article deleted successfully",
     });
-
   } catch (err) {
+    // Penanganan error
     next(err);
   }
 };
 
-module.exports = { createPost, getPosts, getPostId, getPostByCategory, getUserPost, updatePost, deletePost };
+
+module.exports = { createPost, getPosts, getPostId, getPostByCategory, getUserPost, updatePost, deleteArticle };

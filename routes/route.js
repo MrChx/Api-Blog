@@ -1,8 +1,8 @@
 const {Router} = require('express');
 const { registerUser, loginUser, detailUser, changeAvatar, editUser, logoutUser } = require('../controller/user-controller');
 const protectedMiddleware = require('../middleware/auth-middleware');
-const { createPost, getPosts, getPostId, getPostByCategory, getUserPost, updatePost, deletePost } = require('../controller/post-controller');
-const { createArticle } = require('../controller/article-controller');
+const { createPost, getPosts, getPostId, getPostByCategory, getUserPost, updatePost, deletePost, deleteArticle } = require('../controller/post-controller');
+const { createArticle, getArticle, searchArticles, updateArticle } = require('../controller/article-controller');
 
 
 const router = Router();
@@ -23,5 +23,9 @@ router.route('/update-post/:postId').patch(protectedMiddleware, updatePost);
 router.route('/delete-post/:postId').delete(protectedMiddleware, deletePost);
 
 router.route('/create-article').post(protectedMiddleware, createArticle);
+router.route('/articles').get(getArticle);
+router.route('/article/search').get(searchArticles);
+router.route('/update-article/:id').patch(protectedMiddleware, updateArticle);
+router.route('/delete-article/:articleId').delete(protectedMiddleware, deleteArticle);
 
 module.exports = router
